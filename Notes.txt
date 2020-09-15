@@ -1,0 +1,54 @@
+	ChessProgram (3.0.12):
+Single-Threaded, No ABP, No Ordering, No Duplicate-State-Check
+---------------------------------------------------------
+Ply:	1	Total States:	20
+Ply:	2	Total States:	400
+Ply:	3	Total States:	8.902
+Ply:	4	Total States:	197.742
+Ply:	5	Total States:	4.896.994
+Ply:	6	Total States:	120.907.165
+---------------------------------------------------------
+	ChessProgram (3.0.13):
+Single-Threaded, With ABP, No Ordering, No Duplicate-State-Check
+---------------------------------------------------------
+Ply:	1	Total States:	1
+Ply:	2	Total States:	20			Prune Exponent:	2.00
+Ply:	3	Total States:	39			Prune Exponent:	2.48
+Ply:	4	Total States:	464			Prune Exponent:	1.99
+Ply:	5	Total States:	1.197		Prune Exponent:	2.17
+Ply:	6	Total States:	16.767		Prune Exponent:	1.91
+Ply:	7	Total States:	175.311		Prune Exponent:	--
+Ply:	8	Total States:	554.375		Prune Exponent:	--
+---------------------------------------------------------
+	ChessProgram (3.0.16) (Certain game position of Step 1.5):
+Single-Threaded, With ABP, No Ordering, No Duplicate-State-Check
+---------------------------------------------------------
+Ply:	4	Total States:	3.566		Prune Exponent:	--
+Ply:	6	Total States:	228.669		Prune Exponent:	--
+---------------------------------------------------------
+	ChessProgram (3.1.00) (Certain game position of Step 1.5):
+Single-Threaded, With ABP, No Ordering, No Duplicate-State-Check
+---------------------------------------------------------
+Ply:	7	Total States:	1.363.475	Time (Debug):	4,9s	Memory:	395MB
+---------------------------------------------------------
+	ChessProgram (3.1.05) (Certain game position of Step 1.5):
+Single-Threaded, With ABP, Ordering, Duplicate-State-Check (WIP)
+---------------------------------------------------------
+	Until Depth 4:
+Scores of moves with just MinMax:
+3,4,0!!,1,9,4,1,2,4,1,1,2,1,1,2,1,1,1,1,1,1,2,4,1,1,1,1,1,1,2,1,1,1.
+Scores of moves with just MinMax and DSC:
+3,4,0!!,1,9,4,1,2,4,1,1,2,1,1,2,1,1,1,1,1,1,2,4,1,1,1,1,1,1,2,1,1,1.
+Scores of moves with just ABP:
+3,3,0!!,1,9,4,0,2,3,1,1,1,0,0,0,1,0,0,0,0,0,2,4,0,1,0,1,1,0,1,0,0,1.
+Scores of moves with ABP and DSC:
+3,3,0!!,1,9,4,0,2,3,1,1,1,1,0,0,1,0,0,0,0,0,2,4,0,0,0,1,1,1,0,1,0,1.
+	Until Depth 6:
+Scores of moves with ABP and DSC:
+3,3,1!!,1,6,2,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1.
+Scores of moves with just ABP:
+3,3,1!!,1,6,2,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1.
+
+RAM-usage of visitedBoardStates (After 25 Plies with Depth 6 each):
+Count = 2.387.415 and Process Memory is 207 MB.
+=> Result: I should save up to 3.000.000 Nodes for Transposition Table before replacing them.

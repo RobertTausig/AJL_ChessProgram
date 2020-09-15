@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "AJL_ChessEngine": {
+      "commandName": "Project"
+    },
+    "Prog": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\Armin\\source\\repos\\AJL_ChessProgram_Most Recent\\AJL_ChessProgram\\bin\\Debug\\netcoreapp3.1\\AJL_ChessProgram.exe",
+      "nativeDebugging": true
+    }
+  }
+}
