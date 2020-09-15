@@ -70,16 +70,11 @@ namespace AJL_ChessProgram
             foreach (var optMove in PruneOpt.OrderedMoves(maximizingPlayer))
             {
                 //---------------------------------
-                // Visited State Pruning:
-                // (Only proceed in tree if state has not be visited through other nodes)
-                //---------------------------------
-                
-
-                //---------------------------------
                 // Play actual move:
                 //---------------------------------
                 Gameboard.TryMove(optMove);
                 var stateIdentifier = StaticStateAsIdentifier();
+                //Only proceed in tree if state has not be visited through other nodes:
                 if (visitedBoardStates.ContainsKey(stateIdentifier) &&
                     (visitedBoardStates[stateIdentifier].distanceFromLeaf + currentDepth) >= maxDepth)
                 {
