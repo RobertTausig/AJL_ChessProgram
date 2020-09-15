@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using SimpleGameTree;
 using System.Diagnostics;
-using AJL_ChessProgram.Classes;
 
 namespace AJL_ChessProgram
 {
