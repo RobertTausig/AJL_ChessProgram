@@ -25,8 +25,7 @@ namespace AJL_ChessProgram
         MovementLogic Logic;
         PruneOptimisation PruneOpt;
         //AJL_Tree Tree = new AJL_Tree();
-        Dictionary<ulong, (bool isUpperLimit, byte distanceFromLeaf, byte age, double score)> visitedBoardStates =
-            new Dictionary<ulong, (bool isUpperLimit, byte distanceFromLeaf, byte age, double score)>();
+        TranspositionTable TransTable = new TranspositionTable();
         // Initial values of Alpha and Beta 
         private static double MAX = 1000;
         private static double MIN = -1000;
@@ -75,17 +74,17 @@ namespace AJL_ChessProgram
                 Gameboard.TryMove(optMove);
                 var stateIdentifier = StaticStateAsIdentifier();
                 //Only proceed in tree if state has not be visited through other nodes:
-                if (visitedBoardStates.ContainsKey(stateIdentifier) &&
-                    (visitedBoardStates[stateIdentifier].distanceFromLeaf + currentDepth) >= maxDepth)
+                var foundTransposition = TransTable.TryGet(currentDepth, maxDepth, stateIdentifier);
+                if(foundTransposition.successful)
                 {
-                    if (visitedBoardStates[stateIdentifier].isUpperLimit)
+                    if (foundTransposition.trsp.isUpperLimit)
                     {
-                        best = Math.Max(best, visitedBoardStates[stateIdentifier].score);
+                        best = Math.Max(best, foundTransposition.trsp.score);
                         alpha = Math.Max(alpha, best);
                     }
                     else
                     {
-                        best = Math.Min(best, visitedBoardStates[stateIdentifier].score);
+                        best = Math.Min(best, foundTransposition.trsp.score);
                         beta = Math.Min(beta, best);
                     }
                     Gameboard.TryRevertLastMove();
@@ -97,18 +96,10 @@ namespace AJL_ChessProgram
                 //    node.score = val; node.depth = currentDepth + 1; node.content = Gameboard.LoggedMoves.myClone();
                 //Tree.AddNode(node);
 
-                if (!visitedBoardStates.ContainsKey(stateIdentifier))
-                {
-                    //Node is unkown. Add:
-                    visitedBoardStates.Add(stateIdentifier,
-                        (isUpperLimit: maximizingPlayer, distanceFromLeaf: (byte)(maxDepth - currentDepth), age: currentAge, score: val));
-                }
-                else if (visitedBoardStates[stateIdentifier].distanceFromLeaf < (maxDepth - currentDepth))
-                {
-                    //Same node with a deeper information was found. Replace old one:
-                    visitedBoardStates[stateIdentifier] =
-                        (isUpperLimit: maximizingPlayer, distanceFromLeaf: (byte)(maxDepth - currentDepth), age: currentAge, score: val);
-                }
+                var newTransposition = new Transposition(isUpperLimit: maximizingPlayer,
+                    distanceFromLeaf: (byte)(maxDepth - currentDepth), age: currentAge, score: val);
+                TransTable.TryAdd(newTransposition, currentDepth, maxDepth, stateIdentifier);
+
                 //Clean up:
                 Gameboard.TryRevertLastMove();
 

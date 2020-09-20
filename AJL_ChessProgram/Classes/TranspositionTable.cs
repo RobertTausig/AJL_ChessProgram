@@ -33,7 +33,7 @@ namespace AJL_ChessProgram
                 return (false, stdTrsp);
             }
         }
-        public bool TryAdd(Transposition trsp, ulong hash)
+        public bool TryAdd(Transposition trsp, int currentDepth, int maxDepth, ulong hash)
         {
             try
             {
@@ -41,13 +41,18 @@ namespace AJL_ChessProgram
                 {
                     //Node is unkown. Add:
                     transTab.Add(hash, trsp);
+                    return true;
                 }
-                else
+                else if (trsp.distanceFromLeaf < (maxDepth - currentDepth))
                 {
                     //Same node with a deeper information was found. Replace old one:
                     transTab[hash] = trsp;
+                    return true;
                 }
-                return true;
+                else
+                {
+                    return false;
+                }
             }
             catch
             {
@@ -61,10 +66,17 @@ namespace AJL_ChessProgram
 
     internal struct Transposition
     {
-        public bool isUpperLimit;
-        public byte distanceFromLeaf;
-        public byte age;
-        public double score;
+        public Transposition(bool isUpperLimit, byte distanceFromLeaf, byte age, double score)
+        {
+            this.isUpperLimit = isUpperLimit;
+            this.distanceFromLeaf = distanceFromLeaf;
+            this.age = age;
+            this.score = score;
+        }
+        public readonly bool isUpperLimit;
+        public readonly byte distanceFromLeaf;
+        public readonly byte age;
+        public readonly double score;
     }
 
 }
