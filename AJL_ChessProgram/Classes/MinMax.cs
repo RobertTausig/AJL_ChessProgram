@@ -14,10 +14,11 @@ namespace AJL_ChessProgram
     //! White always maximises, Black always minimises !
     class MinMax
     {
-        public MinMax(Board Gameboard, MovementLogic Logic)
+        public MinMax(Board Gameboard, MovementLogic Logic, TranspositionTable TransTable)
         {
             this.Gameboard = Gameboard;
             this.Logic = Logic;
+            this.TransTable = TransTable;
             this.PruneOpt = new PruneOptimisation(Gameboard, Logic);
         }
 
@@ -25,7 +26,7 @@ namespace AJL_ChessProgram
         MovementLogic Logic;
         PruneOptimisation PruneOpt;
         //AJL_Tree Tree = new AJL_Tree();
-        TranspositionTable TransTable = new TranspositionTable();
+        TranspositionTable TransTable;
         // Initial values of Alpha and Beta 
         private static double MAX = 1000;
         private static double MIN = -1000;
@@ -33,7 +34,7 @@ namespace AJL_ChessProgram
         private int maxDepth = 1;
         public byte currentAge { get; set; } = 0;
 
-        double AlphaBetaPruning(int currentDepth, bool maximizingPlayer, double alpha, double beta)
+        (double score, NodeType nodeType) AlphaBetaPruning(int currentDepth, bool maximizingPlayer, double alpha, double beta)
         {
             try
             {
@@ -41,7 +42,8 @@ namespace AJL_ChessProgram
                 if (currentDepth == maxDepth)
                 {
                     var leafVal = Evaluation();
-                    return leafVal;
+                    var nodeType = NodeType.exact;
+                    return (leafVal, nodeType);
                 }
 
                 if (maximizingPlayer)
@@ -56,11 +58,11 @@ namespace AJL_ChessProgram
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                return 0;
+                return (0, NodeType.unkown);
             }
             
         }
-        private double Iteration (int currentDepth, bool maximizingPlayer, double alpha, double beta)
+        private (double score, NodeType nodeType) Iteration (int currentDepth, bool maximizingPlayer, double alpha, double beta)
         {
             double best = maximizingPlayer ? MIN : MAX;
             //var parentNode = new AJL_Node(); parentNode.depth = currentDepth; parentNode.nodeID = MovesAsIdentifier();
@@ -77,18 +79,21 @@ namespace AJL_ChessProgram
                 var foundTransposition = TransTable.TryGet(currentDepth, maxDepth, stateIdentifier);
                 if(foundTransposition.successful)
                 {
-                    if (foundTransposition.trsp.isUpperLimit)
+                    if (foundTransposition.trsp.nodeType == NodeType.exact)
                     {
-                        best = Math.Max(best, foundTransposition.trsp.score);
-                        alpha = Math.Max(alpha, best);
+                        if (maximizingPlayer)
+                        {
+                            best = Math.Max(best, foundTransposition.trsp.score);
+                            alpha = Math.Max(alpha, best);
+                        }
+                        else
+                        {
+                            best = Math.Min(best, foundTransposition.trsp.score);
+                            beta = Math.Min(beta, best);
+                        }
+                        Gameboard.TryRevertLastMove();
+                        continue;
                     }
-                    else
-                    {
-                        best = Math.Min(best, foundTransposition.trsp.score);
-                        beta = Math.Min(beta, best);
-                    }
-                    Gameboard.TryRevertLastMove();
-                    continue;
                 }
 
                 var val = AlphaBetaPruning(currentDepth + 1, (!maximizingPlayer), alpha, beta);
@@ -96,8 +101,8 @@ namespace AJL_ChessProgram
                 //    node.score = val; node.depth = currentDepth + 1; node.content = Gameboard.LoggedMoves.myClone();
                 //Tree.AddNode(node);
 
-                var newTransposition = new Transposition(isUpperLimit: maximizingPlayer,
-                    distanceFromLeaf: (byte)(maxDepth - currentDepth), age: currentAge, score: val);
+                var newTransposition = new Transposition(nodeType: val.nodeType,
+                    distanceFromLeaf: (byte)(maxDepth - currentDepth), age: currentAge, score: val.score);
                 TransTable.TryAdd(newTransposition, currentDepth, maxDepth, stateIdentifier);
 
                 //Clean up:
@@ -105,12 +110,12 @@ namespace AJL_ChessProgram
 
                 if (maximizingPlayer)
                 {
-                    best = Math.Max(best, val);
+                    best = Math.Max(best, val.score);
                     alpha = Math.Max(alpha, best);
                 }
                 else
                 {
-                    best = Math.Min(best, val);
+                    best = Math.Min(best, val.score);
                     beta = Math.Min(beta, best);
                 }
                 //---------------------------------
@@ -122,15 +127,16 @@ namespace AJL_ChessProgram
                     {
                         evaluatedNodes.Add(new KeyValuePair<Stack<Move>, double>(Gameboard.LoggedMoves.myClone(), best));
                     }
-                    return best;
+                    return (best, NodeType.lowerBound);
                 }
 
             }
+            //All moves have been exhausted.
             if (currentDepth == 1)
             {
                 evaluatedNodes.Add(new KeyValuePair<Stack<Move>, double>(Gameboard.LoggedMoves.myClone(), best));
             }
-            return best;
+            return (best, NodeType.higherBound);
         }
 
         public Move CalculateBestMove(int maxDepth, bool isWhitePlayer)
@@ -142,7 +148,7 @@ namespace AJL_ChessProgram
             var bestValue = AlphaBetaPruning(0, isWhitePlayer, MIN, MAX);
 
             //Best move is first(!) one in order of evaluation with best value:
-            var bestMove = evaluatedNodes.First(x => x.Value == bestValue).Key;
+            var bestMove = evaluatedNodes.First(x => x.Value == bestValue.score).Key;
 
             watch.Stop();
             Console.WriteLine("Calculated move in " + watch.ElapsedMilliseconds.ToString() + " ms.");

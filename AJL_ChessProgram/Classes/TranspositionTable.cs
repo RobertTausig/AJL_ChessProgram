@@ -66,14 +66,14 @@ namespace AJL_ChessProgram
 
     internal struct Transposition
     {
-        public Transposition(bool isUpperLimit, byte distanceFromLeaf, byte age, double score)
+        public Transposition(NodeType nodeType, byte distanceFromLeaf, byte age, double score)
         {
-            this.isUpperLimit = isUpperLimit;
+            this.nodeType = nodeType;
             this.distanceFromLeaf = distanceFromLeaf;
             this.age = age;
             this.score = score;
         }
-        public readonly bool isUpperLimit;
+        public readonly NodeType nodeType;
         public readonly byte distanceFromLeaf;
         public readonly byte age;
         public readonly double score;

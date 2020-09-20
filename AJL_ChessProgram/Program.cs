@@ -24,7 +24,8 @@ namespace AJL_ChessProgram
             var StartingState = new StdChessStartState();
             var GameBoard = new Board(StartingState);
             var Logic = new MovementLogic(StartingState);
-            var MiniMaxi = new MinMax(GameBoard, Logic);
+            var TransTable = new TranspositionTable();
+            var MiniMaxi = new MinMax(GameBoard, Logic, TransTable);
             Console.WriteLine("Hi, the game has started. You are playing the white player.");
             Console.WriteLine("K = King | Q = Queen | N = Knight | R = Rook | B = Bishop | P = Pawn");
             Console.WriteLine(@"Please give your moves like ""Nb1,c3""."+"\n");
