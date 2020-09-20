@@ -102,9 +102,13 @@ namespace AJL_ChessProgram
                 //    node.score = val; node.depth = currentDepth + 1; node.content = Gameboard.LoggedMoves.myClone();
                 //Tree.AddNode(node);
 
-                var newTransposition = new Transposition(nodeType: val.nodeType,
+                //Only save exact or lower bound nodes:
+                if (val.nodeType == NodeType.exact || val.nodeType == NodeType.lowerBound)
+                {
+                    var newTransposition = new Transposition(nodeType: val.nodeType,
                     distanceFromLeaf: (byte)(maxDepth - currentDepth), age: currentAge, score: val.score);
-                TransTable.TryAdd(newTransposition, currentDepth, maxDepth, stateIdentifier);
+                    TransTable.TryAdd(newTransposition, currentDepth, maxDepth, stateIdentifier);
+                }
                 //Parent node can not be exact, if one of the children hasn't been:
                 if (val.nodeType != NodeType.exact) { allChildNodesAreExact = false; }
 
@@ -165,7 +169,7 @@ namespace AJL_ChessProgram
             Console.WriteLine("Calculated move in " + watch.ElapsedMilliseconds.ToString() + " ms.");
 
             //Just for debugging:
-            //var debug = TransTable.Debugging();
+            var debug = TransTable.Debugging();
             //var aa = debug[2800];
 
             //Clear nodes:
