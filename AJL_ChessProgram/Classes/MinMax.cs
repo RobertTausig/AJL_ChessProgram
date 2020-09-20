@@ -152,6 +152,9 @@ namespace AJL_ChessProgram
 
             watch.Stop();
             Console.WriteLine("Calculated move in " + watch.ElapsedMilliseconds.ToString() + " ms.");
+            //Just for debugging:
+            var debug = TransTable.Debugging();
+
             //Clear nodes:
             evaluatedNodes.Clear();
             //Tree.RemoveNode(1);

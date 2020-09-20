@@ -61,6 +61,14 @@ namespace AJL_ChessProgram
 
 
         }
+
+        //JUST FOR DEBUGGING AS VISUAL STUDIO DOESNT SHOW ENTRIES:
+        public List<KeyValuePair<ulong, Transposition>> Debugging()
+        {
+            return transTab.ToList();
+        }
+
+
     }
 
 
