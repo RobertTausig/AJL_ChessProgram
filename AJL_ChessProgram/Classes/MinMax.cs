@@ -65,6 +65,7 @@ namespace AJL_ChessProgram
         private (double score, NodeType nodeType) Iteration (int currentDepth, bool maximizingPlayer, double alpha, double beta)
         {
             double best = maximizingPlayer ? MIN : MAX;
+            bool allChildNodesAreExact = true;
             //var parentNode = new AJL_Node(); parentNode.depth = currentDepth; parentNode.nodeID = MovesAsIdentifier();
             //parentNode.parentID = Tree.depthCollection[currentDepth - 1].Last().nodeID; parentNode.content = Gameboard.LoggedMoves.myClone();
             //Tree.AddNode(parentNode);
@@ -104,6 +105,8 @@ namespace AJL_ChessProgram
                 var newTransposition = new Transposition(nodeType: val.nodeType,
                     distanceFromLeaf: (byte)(maxDepth - currentDepth), age: currentAge, score: val.score);
                 TransTable.TryAdd(newTransposition, currentDepth, maxDepth, stateIdentifier);
+                //Parent node can not be exact, if one of the children hasn't been:
+                if (val.nodeType != NodeType.exact) { allChildNodesAreExact = false; }
 
                 //Clean up:
                 Gameboard.TryRevertLastMove();
@@ -136,7 +139,15 @@ namespace AJL_ChessProgram
             {
                 evaluatedNodes.Add(new KeyValuePair<Stack<Move>, double>(Gameboard.LoggedMoves.myClone(), best));
             }
-            return (best, NodeType.higherBound);
+
+            if (allChildNodesAreExact)
+            {
+                return (best, NodeType.exact);
+            }
+            else
+            {
+                return (best, NodeType.higherBound);
+            }
         }
 
         public Move CalculateBestMove(int maxDepth, bool isWhitePlayer)
@@ -152,8 +163,10 @@ namespace AJL_ChessProgram
 
             watch.Stop();
             Console.WriteLine("Calculated move in " + watch.ElapsedMilliseconds.ToString() + " ms.");
+
             //Just for debugging:
-            var debug = TransTable.Debugging();
+            //var debug = TransTable.Debugging();
+            //var aa = debug[2800];
 
             //Clear nodes:
             evaluatedNodes.Clear();
