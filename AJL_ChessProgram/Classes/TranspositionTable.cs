@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using AJL_ChessEngine;
 
@@ -16,6 +19,7 @@ namespace AJL_ChessProgram
 
         protected Dictionary<ulong, Transposition> transTab = new Dictionary<ulong, Transposition>();
         private Transposition stdTrsp;
+        private const int allowedNumberEntries = 3_000_000;
 
         public bool Contains(ulong hash)
         {
@@ -33,7 +37,7 @@ namespace AJL_ChessProgram
                 return (false, stdTrsp);
             }
         }
-        public bool TryAdd(Transposition trsp, int currentDepth, int maxDepth, ulong hash)
+        public bool TryAdd(Transposition trsp, ulong hash)
         {
             try
             {
@@ -43,7 +47,7 @@ namespace AJL_ChessProgram
                     transTab.Add(hash, trsp);
                     return true;
                 }
-                else if (trsp.distanceFromLeaf < (maxDepth - currentDepth))
+                else if (trsp.distanceFromLeaf > transTab[hash].distanceFromLeaf)
                 {
                     //Same node with a deeper information was found. Replace old one:
                     transTab[hash] = trsp;
@@ -58,14 +62,36 @@ namespace AJL_ChessProgram
             {
                 return false;
             }
-
-
         }
 
-        //JUST FOR DEBUGGING AS VISUAL STUDIO DOESN'T SHOW ENTRIES:
-        public List<KeyValuePair<ulong, Transposition>> Debugging()
+        //Shall never be executed in main thread.
+        public bool TryFreeMemory()
         {
-            return transTab.ToList();
+            if (transTab.Count > allowedNumberEntries)
+            {
+                var orderedTransTab = transTab.OrderBy(x => x.Value.age).ToList();
+                var lowestAge = orderedTransTab.First().Value.age;
+                var highestAge = transTab.OrderByDescending(x => x.Value.age).First().Value.age;
+
+                foreach (var (key,_) in orderedTransTab)
+                {
+                    if (transTab[key].age == lowestAge)
+                    {
+                        transTab.Remove(key);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                //Repeat until enough memory is freed:
+                TryFreeMemory();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
 

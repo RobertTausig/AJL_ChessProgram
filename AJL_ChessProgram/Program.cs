@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -30,48 +31,48 @@ namespace AJL_ChessProgram
             Console.WriteLine("K = King | Q = Queen | N = Knight | R = Rook | B = Bishop | P = Pawn");
             Console.WriteLine(@"Please give your moves like ""Nb1,c3""."+"\n");
 
-            var ply_1 = GameBoard.TryMove(new pos(1, 0), new pos(2, 2), FigID.wKnight);
-            var ply_2 = GameBoard.TryMove(new pos(1, 7), new pos(2, 5), FigID.bKnight);
-            var ply_3 = GameBoard.TryMove(new pos(3, 1), new pos(3, 3), FigID.wPawn);
-            var ply_4 = GameBoard.TryMove(new pos(4, 6), new pos(4, 5), FigID.bPawn);
-            var ply_5 = GameBoard.TryMove(new pos(2, 0), new pos(5, 3), FigID.wBishop);
-            //1. Nc3 Nc6  2. d4 e6  3. Bf4 
-            GameBoard.ClearLoggedMoves();
+            //var ply_1 = GameBoard.TryMove(new pos(1, 0), new pos(2, 2), FigID.wKnight);
+            //var ply_2 = GameBoard.TryMove(new pos(1, 7), new pos(2, 5), FigID.bKnight);
+            //var ply_3 = GameBoard.TryMove(new pos(3, 1), new pos(3, 3), FigID.wPawn);
+            //var ply_4 = GameBoard.TryMove(new pos(4, 6), new pos(4, 5), FigID.bPawn);
+            //var ply_5 = GameBoard.TryMove(new pos(2, 0), new pos(5, 3), FigID.wBishop);
+            ////1. Nc3 Nc6  2. d4 e6  3. Bf4 
+            //GameBoard.ClearLoggedMoves();
 
             while (true)
             {
                 try
                 {
-                    //while (true)
-                    //{
-                    //    var input = Console.ReadLine();
-                    //    if (input != "nothing")
-                    //    {
-                    //        var (notationFrom, notationTo, notationFigID) = Notation.ConsoleInputToInternal(input);
-                    //        if (Logic.PossibleFieldsToMove(new KeyValuePair<pos, FigID>(notationFrom, notationFigID)).Contains(notationTo))
-                    //        {
-                    //            if (!GameBoard.TryMove(notationFrom, notationTo, notationFigID))
-                    //            {
-                    //                Console.WriteLine("Your input was erroneous and was not executed.");
-                    //            }
-                    //            else
-                    //            {
-                    //                Console.WriteLine("White Player plays: " + input);
-                    //                break;
-                    //            }
-                    //        }
-                    //        else
-                    //        {
-                    //            Console.WriteLine("Your input was erroneous and was not executed.");
-                    //        }
-                    //    }
-                    //    else
-                    //    {
-                    //        break;
-                    //    }
-                    //}
-                    ////Clear Stack:
-                    //GameBoard.ClearLoggedMoves();
+                    while (true)
+                    {
+                        var input = Console.ReadLine();
+                        if (input != "nothing")
+                        {
+                            var (notationFrom, notationTo, notationFigID) = Notation.ConsoleInputToInternal(input);
+                            if (Logic.PossibleFieldsToMove(new KeyValuePair<pos, FigID>(notationFrom, notationFigID)).Contains(notationTo))
+                            {
+                                if (!GameBoard.TryMove(notationFrom, notationTo, notationFigID))
+                                {
+                                    Console.WriteLine("Your input was erroneous and was not executed.");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("White Player plays: " + input);
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Your input was erroneous and was not executed.");
+                            }
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    //Clear Stack:
+                    GameBoard.ClearLoggedMoves();
                     //-----------------------------
                     // Step 1.5: Only for debugging:
                     //-----------------------------
@@ -94,6 +95,8 @@ namespace AJL_ChessProgram
                     //-----------------------------
                     var bestMove = MiniMaxi.CalculateBestMove(6, false);
                     MiniMaxi.currentAge++;
+
+                    var worker = Task.Run(() => TransTable.TryFreeMemory());
                     //-----------------------------
                     // Step 3: Play Move and put out on console:
                     //-----------------------------
@@ -105,7 +108,7 @@ namespace AJL_ChessProgram
                     //Clear Stack:
                     GameBoard.ClearLoggedMoves();
                 }
-                catch
+                catch (Exception e)
                 {
                     Console.WriteLine("Your input was erroneous and was not executed.");
                 }

@@ -92,22 +92,31 @@ namespace AJL_ChessProgram
                             best = Math.Min(best, foundTransposition.trsp.score);
                             beta = Math.Min(beta, best);
                         }
+
+                        if (beta <= alpha)
+                        {
+                            Gameboard.TryRevertLastMove();
+                            return (best, NodeType.lowerBound);
+                        }
                         Gameboard.TryRevertLastMove();
                         continue;
                     }
                 }
 
+                //---------------------------------
+                // Go to greater depth and save in Transposition Table:
+                //---------------------------------
                 var val = AlphaBetaPruning(currentDepth + 1, (!maximizingPlayer), alpha, beta);
                 //var node = new AJL_Node(); node.nodeID = MovesAsIdentifier(); node.parentID = parentNode.nodeID;
                 //    node.score = val; node.depth = currentDepth + 1; node.content = Gameboard.LoggedMoves.myClone();
                 //Tree.AddNode(node);
 
                 //Only save exact or lower bound nodes:
-                if (val.nodeType == NodeType.exact || val.nodeType == NodeType.lowerBound)
+                if (val.nodeType == NodeType.exact) //|| val.nodeType == NodeType.lowerBound)
                 {
                     var newTransposition = new Transposition(nodeType: val.nodeType,
-                    distanceFromLeaf: (byte)(maxDepth - currentDepth), age: currentAge, score: val.score);
-                    TransTable.TryAdd(newTransposition, currentDepth, maxDepth, stateIdentifier);
+                    distanceFromLeaf: (byte)(maxDepth - currentDepth - 1), age: currentAge, score: val.score);
+                    TransTable.TryAdd(newTransposition, stateIdentifier);
                 }
                 //Parent node can not be exact, if one of the children hasn't been:
                 if (val.nodeType != NodeType.exact) { allChildNodesAreExact = false; }
@@ -167,10 +176,6 @@ namespace AJL_ChessProgram
 
             watch.Stop();
             Console.WriteLine("Calculated move in " + watch.ElapsedMilliseconds.ToString() + " ms.");
-
-            //Just for debugging:
-            var debug = TransTable.Debugging();
-            //var aa = debug[2800];
 
             //Clear nodes:
             evaluatedNodes.Clear();
