@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using AJL_ChessEngine;
@@ -30,6 +31,7 @@ namespace AJL_ChessProgram
             Console.WriteLine("Hi, the game has started. You are playing the white player.");
             Console.WriteLine("K = King | Q = Queen | N = Knight | R = Rook | B = Bishop | P = Pawn");
             Console.WriteLine(@"Please give your moves like ""Nb1,c3""."+"\n");
+            Task Worker = null;
 
             //var ply_1 = GameBoard.TryMove(new pos(1, 0), new pos(2, 2), FigID.wKnight);
             //var ply_2 = GameBoard.TryMove(new pos(1, 7), new pos(2, 5), FigID.bKnight);
@@ -48,6 +50,8 @@ namespace AJL_ChessProgram
                         var input = Console.ReadLine();
                         if (input != "nothing")
                         {
+                            //Wait for Worker if still busy:
+                            if (Worker != null) { Worker.Wait(); }
                             var (notationFrom, notationTo, notationFigID) = Notation.ConsoleInputToInternal(input);
                             if (Logic.PossibleFieldsToMove(new KeyValuePair<pos, FigID>(notationFrom, notationFigID)).Contains(notationTo))
                             {
@@ -93,20 +97,28 @@ namespace AJL_ChessProgram
                     //-----------------------------
                     // Step 2: Find Move:
                     //-----------------------------
-                    var bestMove = MiniMaxi.CalculateBestMove(6, false);
+                    var (bestMove, bestCounterMove) = MiniMaxi.CalculateBestMove(6, false);
                     MiniMaxi.currentAge++;
-
-                    var worker = Task.Run(() => TransTable.TryFreeMemory());
                     //-----------------------------
                     // Step 3: Play Move and put out on console:
                     //-----------------------------
                     //Play it:
-                    GameBoard.TryMove(bestMove.oldPos, bestMove.newPos, bestMove.movedID);
+                    GameBoard.TryMove(bestMove);
 
                     var output = Notation.InternalToConsoleOutput(bestMove.oldPos, bestMove.newPos, bestMove.movedID);
                     Console.WriteLine("Black Player plays: " + output);
                     //Clear Stack:
                     GameBoard.ClearLoggedMoves();
+
+                    Worker = Task.Run(() =>
+                    {
+                        //GameBoard.TryMove(bestCounterMove);
+                        //MiniMaxi.CalculateBestMove(6, false);
+                        //MiniMaxi.currentAge++;
+                        TransTable.TryFreeMemory();
+                        //GameBoard.TryRevertLastMove();
+                    });
+
                 }
                 catch (Exception e)
                 {

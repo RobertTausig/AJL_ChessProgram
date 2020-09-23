@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using SimpleGameTree;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace AJL_ChessProgram
 {
@@ -139,7 +140,7 @@ namespace AJL_ChessProgram
                 //---------------------------------
                 if (beta <= alpha)
                 {
-                    if (currentDepth == 1)
+                    if (currentDepth <= 2)
                     {
                         evaluatedNodes.Add(new KeyValuePair<Stack<Move>, double>(Gameboard.LoggedMoves.myClone(), best));
                     }
@@ -148,7 +149,7 @@ namespace AJL_ChessProgram
 
             }
             //All moves have been exhausted.
-            if (currentDepth == 1)
+            if (currentDepth <= 2)
             {
                 evaluatedNodes.Add(new KeyValuePair<Stack<Move>, double>(Gameboard.LoggedMoves.myClone(), best));
             }
@@ -163,7 +164,7 @@ namespace AJL_ChessProgram
             }
         }
 
-        public Move CalculateBestMove(int maxDepth, bool isWhitePlayer)
+        public (Move bestMove, Move bestCounterMove) CalculateBestMove(int maxDepth, bool isWhitePlayer)
         {
             var watch = new Stopwatch();
             watch.Start();
@@ -172,7 +173,10 @@ namespace AJL_ChessProgram
             var bestValue = AlphaBetaPruning(0, isWhitePlayer, MIN, MAX);
 
             //Best move is first(!) one in order of evaluation with best value:
-            var bestMove = evaluatedNodes.First(x => x.Value == bestValue.score).Key;
+            var bestMove = evaluatedNodes.Where(y => y.Key.Count == 1).First(x => x.Value == bestValue.score).Key.First();
+            var temp = evaluatedNodes.Where(y => y.Key.Count == 2 && y.Key.Last().movedID == bestMove.movedID).First();
+            var bestCounterMove = temp.Key.Peek();
+            //var bestCounterMove = temp.Where(x => x.Key.Peek().movedID == bestMove.Peek().movedID).ToList();
 
             watch.Stop();
             Console.WriteLine("Calculated move in " + watch.ElapsedMilliseconds.ToString() + " ms.");
@@ -180,7 +184,7 @@ namespace AJL_ChessProgram
             //Clear nodes:
             evaluatedNodes.Clear();
             //Tree.RemoveNode(1);
-            return bestMove.Peek();
+            return (bestMove, bestCounterMove);
         }
 
         private double Evaluation()
