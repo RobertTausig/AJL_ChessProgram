@@ -84,8 +84,10 @@ namespace AJL_ChessProgram
                         break;
                     }
                 }
-                //Repeat until enough memory is freed:
+                //Repeat until enough entries are deleted:
                 TryFreeMemory();
+                //Release removed entries from memory:
+                transTab.TrimExcess();
                 return true;
             }
             else
